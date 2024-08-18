@@ -1,3 +1,4 @@
+import os
 import random
 from matplotlib import pyplot as plt
 
@@ -71,7 +72,7 @@ def generate_puzzle(given: int) -> list:
         board[x][y] = 0
     return board
 
-GIVEN_NUMBERS = 30
+GIVEN_NUMBERS = 32
 SUDOKU = generate_puzzle(GIVEN_NUMBERS)
 
 print(" -------  SUDOKU ------- ")
@@ -87,14 +88,15 @@ for row in SUDOKU:
 
 POPULATION_SIZE = 1200
 MAX_FITNESS = 2 * 81
-N_WAY_MUTATION = 5
+N_WAY_MUTATION = 8
 
 SURVIVOR_PERCENTAGE = 0.6
-NEWCOMERS_PERCENTAGE = 0.3
+NEWCOMERS_PERCENTAGE = 0.4
 
 MUTATION_PROBABILITY = 0.9
 CROSSOVER_PROBABILITY = 0.8
-MAX_GENERATIONS = 400
+MAX_GENERATIONS = 1000
+MAX_STAGNATE = 120
 
 def get_board_from_candidate(candidate: list) -> list:
     """
@@ -143,9 +145,13 @@ def fitness(candidate: list) -> int:
     return result
 
 # spawing initial population
-populace = []
+population = []
 
 def spawn_candidate() -> list:
+    """
+    Creates a new candidate randomly
+    :return: A new candidate
+    """
     candidate = []
     for row in TEMPLATE:
         row_copy = row.copy()
@@ -154,6 +160,14 @@ def spawn_candidate() -> list:
     return candidate
 
 def random_crossover(a: list, b: list) -> list:
+    """
+    Creates two children based on two parent solutions
+    Each child inherits an entire row from parent a or b, based on a coin flip
+    Refer to slides for further details
+    :param a: parent a
+    :param b: parent b
+    :return: a list containing the two children
+    """
     child_a = []
     child_b = []
     for i in range(9):
@@ -166,7 +180,12 @@ def random_crossover(a: list, b: list) -> list:
     return [child_a, child_b]
 
 def sort_by_fitness():
-    populace.sort(key=lambda x: fitness(x))
+    """
+    Sort the entire population in increasing fitness
+    Used for ranked selection
+    :return:
+    """
+    population.sort(key=lambda x: fitness(x))
 
 def rank_selection() -> list:
     """
@@ -182,7 +201,7 @@ def rank_selection() -> list:
         count += idx
         if count < n:
             idx += 1
-    return populace[idx - 1]
+    return population[idx - 1]
 
 def mutate(candidate: list) -> None:
     """
@@ -197,31 +216,67 @@ def mutate(candidate: list) -> None:
     pos_2 = random.randint(0, len(selected_row) - 1)
     selected_row[pos_1], selected_row[pos_2] = selected_row[pos_2], selected_row[pos_1]
 
-def tournament_eliminate() -> list:
-    candidates = random.sample(range(len(populace)), k=2)
-    candidates.sort(key=lambda x: fitness(populace[x]))
-    return populace.pop(candidates[0])
+def tournament_eliminate() -> None:
+    """
+    Eliminates a candidate by choosing two random candidates from the population
+    and killing the weaker one
+    """
+    candidates = random.sample(range(len(population)), k=2)
+    candidates.sort(key=lambda x: fitness(population[x]))
 
 print("Starting simulation")
 fitness_scores = []
+SCREEN_SIZE = os.get_terminal_size()
+SCREEN_HEIGHT = 16
+SCREEN_WIDTH = 25
 
-# first we create the candidates
-for _ in range(POPULATION_SIZE):
-    populace.append(spawn_candidate())
+def genocide() -> None:
+    """
+    Restarts the experiment by eliminating the entire population and recreating it
+    """
+    global population
+    population = []
+    for _ in range(POPULATION_SIZE):
+        population.append(spawn_candidate())
 
+genocide()
+
+stagnate_count = 0
 # start solving
 for _ in range(MAX_GENERATIONS):
     sort_by_fitness()
 
-    best_fitness = fitness(populace[-1])
-    fitness_scores.append(best_fitness)
-    print(f"Best Candidate Fitness: {best_fitness}")
-    # pretty_print(get_board_from_candidate(populace[-1]))
+    best_fitness = fitness(population[-1])
+    if len(fitness_scores) > 0:
+        if fitness_scores[-1] >= best_fitness:
+            stagnate_count += 1
+        else:
+            stagnate_count = 0
 
+    fitness_scores.append(best_fitness)
+
+    if stagnate_count >= MAX_STAGNATE:
+        print("Population stagnating! Beginning genocide")
+        genocide()
+        stagnate_count = 0
+
+    if SCREEN_WIDTH > SCREEN_SIZE.columns or SCREEN_HEIGHT > SCREEN_SIZE.lines:
+        print(f"Terminal (width=${SCREEN_SIZE.columns}, height=${SCREEN_SIZE.lines}) is too small to render animation!")
+        exit(0)
+
+    rem = SCREEN_SIZE.lines - SCREEN_HEIGHT
     if best_fitness == MAX_FITNESS:
         print("Solution found!")
-        pretty_print(get_board_from_candidate(populace[-1]))
+        pretty_print(get_board_from_candidate(population[-1]))
+        for _ in range(rem + 1):
+            print('')
         break
+    else:
+        print(f"Best Candidate Fitness: {best_fitness}")
+        print(f"Worst Candidates Fitness: {fitness(population[0])}")
+        pretty_print(get_board_from_candidate(population[-1]))
+        for _ in range(rem):
+            print('')
 
     # start by creating offspring
     new_generation = []
@@ -245,18 +300,18 @@ for _ in range(MAX_GENERATIONS):
             new_generation.append(parent_a)
             new_generation.append(parent_b)
 
-    populace.extend(new_generation)
+    population.extend(new_generation)
 
     # then kill
-    while len(populace) > POPULATION_SIZE * (1 - NEWCOMERS_PERCENTAGE):
+    while len(population) > POPULATION_SIZE * (1 - NEWCOMERS_PERCENTAGE):
         tournament_eliminate()
 
     # add in new spawns
-    while len(populace) < POPULATION_SIZE:
-        populace.append(spawn_candidate())
+    while len(population) < POPULATION_SIZE:
+        population.append(spawn_candidate())
 
-def display_results():
-    plt.plot(list(range(1, len(fitness_scores) + 1)), fitness_scores)
-    plt.show()
-
-display_results()
+# def display_results():
+#     plt.plot(list(range(1, len(fitness_scores) + 1)), fitness_scores)
+#     plt.show()
+#
+# display_results()
