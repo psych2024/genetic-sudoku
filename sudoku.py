@@ -223,6 +223,7 @@ def tournament_eliminate() -> None:
     """
     candidates = random.sample(range(len(population)), k=2)
     candidates.sort(key=lambda x: fitness(population[x]))
+    population.pop(candidates[0])
 
 print("Starting simulation")
 fitness_scores = []
