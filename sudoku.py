@@ -75,13 +75,13 @@ def pretty_print(board: list) -> None:
         print("|")
     print(" ------- ------- ------- ")
 
-GIVEN_NUMBERS = 32
+GIVEN_NUMBERS = 35
 SUDOKU = generate_puzzle(GIVEN_NUMBERS)
 
 print(" -------  SUDOKU ------- ")
 pretty_print(SUDOKU)
 print("Part 1 Done!")
-exit(0)
+# exit(0)
 
 # +----------------------------------------------+
 # |                    PART 2                    |
@@ -94,6 +94,18 @@ for row in SUDOKU:
         if i not in row:
             missing.append(i)
     TEMPLATE.append(missing)
+
+def spawn_candidate() -> list:
+    """
+    Creates a new candidate randomly
+    :return: A new candidate
+    """
+    candidate = []
+    for row in TEMPLATE:
+        row_copy = row.copy()
+        random.shuffle(row_copy)
+        candidate.append(row_copy)
+    return candidate
 
 def get_board_from_candidate(candidate: list) -> list:
     """
@@ -113,6 +125,11 @@ def get_board_from_candidate(candidate: list) -> list:
                 l.append(x)
         board.append(l)
     return board
+
+print("Testing solution representation...")
+pretty_print(get_board_from_candidate(spawn_candidate()))
+print("Testing solution representation Done!")
+exit(0)
 
 def fitness(candidate: list) -> int:
     """
@@ -141,42 +158,16 @@ def fitness(candidate: list) -> int:
             result += len(set(subgrid_list))
     return result
 
-# spawing initial population
+print("Testing fitness function...")
+assert (fitness(TEMPLATE) == 162)
+print("Testing fitness Done!")
+exit(0)
+
+print("spawning initial population...")
+POPULATION_SIZE = 1200
 population = []
 
-def spawn_candidate() -> list:
-    """
-    Creates a new candidate randomly
-    :return: A new candidate
-    """
-    candidate = []
-    for row in TEMPLATE:
-        row_copy = row.copy()
-        random.shuffle(row_copy)
-        candidate.append(row_copy)
-    return candidate
-
-def random_crossover(a: list, b: list) -> list:
-    """
-    Creates two children based on two parent solutions
-    Each child inherits an entire row from parent a or b, based on a coin flip
-    Refer to slides for further details
-    :param a: parent a
-    :param b: parent b
-    :return: a list containing the two children
-    """
-    child_a = []
-    child_b = []
-    for i in range(9):
-        if random.random() < 0.5:
-            child_a.append(a[i].copy())
-            child_b.append(b[i].copy())
-        else:
-            child_a.append(b[i].copy())
-            child_b.append(a[i].copy())
-    return [child_a, child_b]
-
-def sort_by_fitness():
+def sort_by_fitness() -> None:
     """
     Sort the entire population in increasing fitness
     Used for ranked selection
@@ -199,6 +190,26 @@ def rank_selection() -> list:
         if count < n:
             idx += 1
     return population[idx - 1]
+
+def random_crossover(a: list, b: list) -> list:
+    """
+    Creates two children based on two parent solutions
+    Each child inherits an entire row from parent a or b, based on a coin flip
+    Refer to slides for further details
+    :param a: parent a
+    :param b: parent b
+    :return: a list containing the two children
+    """
+    child_a = []
+    child_b = []
+    for i in range(9):
+        if random.random() < 0.5:
+            child_a.append(a[i].copy())
+            child_b.append(b[i].copy())
+        else:
+            child_a.append(b[i].copy())
+            child_b.append(a[i].copy())
+    return [child_a, child_b]
 
 def mutate(candidate: list) -> None:
     """
@@ -225,7 +236,6 @@ def tournament_eliminate() -> None:
 # +----------------------------------------------+
 # |                    PART 3                    |
 # +----------------------------------------------+
-POPULATION_SIZE = 1200
 MAX_FITNESS = 2 * 81
 MAX_GENERATIONS = 1000
 MAX_STAGNATE = 120
