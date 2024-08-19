@@ -1,20 +1,5 @@
 import os
 import random
-from matplotlib import pyplot as plt
-
-def pretty_print(board: list) -> None:
-    """
-    Prints sudoku board such that it's human-readable and pretty
-    """
-    for row in range(9):
-        if row % 3 == 0:
-            print(" ------- ------- ------- ")
-        for col in range(9):
-            if col % 3 == 0:
-                print("|", end=" ")
-            print(board[row][col], end=" ")
-        print("|")
-    print(" ------- ------- ------- ")
 
 def backtrack(c, board):
     """
@@ -71,6 +56,20 @@ def generate_puzzle(given: int) -> list:
         y = c // 9
         board[x][y] = 0
     return board
+
+def pretty_print(board: list) -> None:
+    """
+    Prints sudoku board such that it's human-readable and pretty
+    """
+    for row in range(9):
+        if row % 3 == 0:
+            print(" ------- ------- ------- ")
+        for col in range(9):
+            if col % 3 == 0:
+                print("|", end=" ")
+            print(board[row][col], end=" ")
+        print("|")
+    print(" ------- ------- ------- ")
 
 GIVEN_NUMBERS = 32
 SUDOKU = generate_puzzle(GIVEN_NUMBERS)
