@@ -77,6 +77,8 @@ SUDOKU = generate_puzzle(GIVEN_NUMBERS)
 
 print(" -------  SUDOKU ------- ")
 pretty_print(SUDOKU)
+print("Part 1 Done!")
+exit(0)
 
 TEMPLATE = []
 for row in SUDOKU:
