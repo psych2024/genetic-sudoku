@@ -166,12 +166,14 @@ exit(0)
 print("spawning initial population...")
 POPULATION_SIZE = 1200
 population = []
+# creating the population
+for _ in range(POPULATION_SIZE):
+    population.append(spawn_candidate())
 
 def sort_by_fitness() -> None:
     """
     Sort the entire population in increasing fitness
     Used for ranked selection
-    :return:
     """
     population.sort(key=lambda x: fitness(x))
 
@@ -236,10 +238,7 @@ def tournament_eliminate() -> None:
 # +----------------------------------------------+
 # |                    PART 3                    |
 # +----------------------------------------------+
-MAX_FITNESS = 2 * 81
-MAX_GENERATIONS = 1000
-MAX_STAGNATE = 120
-
+MAX_GENERATIONS = 1200
 SURVIVOR_PERCENTAGE = 0.6
 NEWCOMERS_PERCENTAGE = 0.4
 
@@ -253,19 +252,12 @@ SCREEN_SIZE = os.get_terminal_size()
 SCREEN_HEIGHT = 16
 SCREEN_WIDTH = 25
 
-def genocide() -> None:
-    """
-    Restarts the experiment by eliminating the entire population and recreating it
-    """
-    global population
-    population = []
-    for _ in range(POPULATION_SIZE):
-        population.append(spawn_candidate())
-
-genocide()
-
+MAX_STAGNATE = 150
 stagnate_count = 0
-# start solving
+
+# +----------------------------------------------+
+# |                    PART 3                    |
+# +----------------------------------------------+
 for _ in range(MAX_GENERATIONS):
     sort_by_fitness()
 
@@ -279,8 +271,10 @@ for _ in range(MAX_GENERATIONS):
     fitness_scores.append(best_fitness)
 
     if stagnate_count >= MAX_STAGNATE:
-        print("Population stagnating! Beginning genocide")
-        genocide()
+        # kill off population
+        population = []
+        for _ in range(POPULATION_SIZE):
+            population.append(spawn_candidate())
         stagnate_count = 0
 
     if SCREEN_WIDTH > SCREEN_SIZE.columns or SCREEN_HEIGHT > SCREEN_SIZE.lines:
@@ -288,7 +282,7 @@ for _ in range(MAX_GENERATIONS):
         exit(0)
 
     rem = SCREEN_SIZE.lines - SCREEN_HEIGHT
-    if best_fitness == MAX_FITNESS:
+    if best_fitness == 2 * 81:
         print("Solution found!")
         pretty_print(get_board_from_candidate(population[-1]))
         for _ in range(rem + 1):
