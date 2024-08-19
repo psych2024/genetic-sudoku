@@ -1,6 +1,10 @@
 import os
 import random
 
+# +----------------------------------------------+
+# |                    PART 1                    |
+# +----------------------------------------------+
+
 def backtrack(c, board):
     """
     Helper function that generates sudoku puzzle using recursive backtracking
@@ -79,6 +83,10 @@ pretty_print(SUDOKU)
 print("Part 1 Done!")
 exit(0)
 
+# +----------------------------------------------+
+# |                    PART 2                    |
+# +----------------------------------------------+
+
 TEMPLATE = []
 for row in SUDOKU:
     missing = []
@@ -86,18 +94,6 @@ for row in SUDOKU:
         if i not in row:
             missing.append(i)
     TEMPLATE.append(missing)
-
-POPULATION_SIZE = 1200
-MAX_FITNESS = 2 * 81
-N_WAY_MUTATION = 8
-
-SURVIVOR_PERCENTAGE = 0.6
-NEWCOMERS_PERCENTAGE = 0.4
-
-MUTATION_PROBABILITY = 0.9
-CROSSOVER_PROBABILITY = 0.8
-MAX_GENERATIONS = 1000
-MAX_STAGNATE = 120
 
 def get_board_from_candidate(candidate: list) -> list:
     """
@@ -225,6 +221,21 @@ def tournament_eliminate() -> None:
     candidates = random.sample(range(len(population)), k=2)
     candidates.sort(key=lambda x: fitness(population[x]))
     population.pop(candidates[0])
+
+# +----------------------------------------------+
+# |                    PART 3                    |
+# +----------------------------------------------+
+POPULATION_SIZE = 1200
+MAX_FITNESS = 2 * 81
+MAX_GENERATIONS = 1000
+MAX_STAGNATE = 120
+
+SURVIVOR_PERCENTAGE = 0.6
+NEWCOMERS_PERCENTAGE = 0.4
+
+CROSSOVER_PROBABILITY = 0.8
+MUTATION_PROBABILITY = 0.9
+N_WAY_MUTATION = 8
 
 print("Starting simulation")
 fitness_scores = []
