@@ -75,7 +75,7 @@ def pretty_print(board: list) -> None:
         print("|")
     print(" ------- ------- ------- ")
 
-GIVEN_NUMBERS = 31
+GIVEN_NUMBERS = 32
 SUDOKU = generate_puzzle(GIVEN_NUMBERS)
 
 print(" -------  SUDOKU ------- ")
@@ -238,7 +238,7 @@ def tournament_eliminate() -> None:
 # +----------------------------------------------+
 # |                    PART 3                    |
 # +----------------------------------------------+
-MAX_GENERATIONS = 1200
+MAX_GENERATIONS = 1500
 SURVIVOR_PERCENTAGE = 0.6
 NEWCOMERS_PERCENTAGE = 0.4
 
@@ -246,7 +246,11 @@ CROSSOVER_PROBABILITY = 0.8
 MUTATION_PROBABILITY = 0.9
 N_WAY_MUTATION = 8
 
-def print_entire_page():
+def print_entire_page() -> None:
+    """
+    Pretty print stats for each generation animation style
+    Assumes population is sorted
+    """
     SCREEN_SIZE = os.get_terminal_size()
     SCREEN_HEIGHT = 16
     SCREEN_WIDTH = 25
@@ -260,7 +264,6 @@ def print_entire_page():
         pretty_print(get_board_from_candidate(population[-1]))
         for _ in range(rem + 1):
             print('')
-        exit(0)
 
     else:
         print(f"Best Candidate Fitness: {best_fitness}")
@@ -271,7 +274,7 @@ def print_entire_page():
 
 print("Starting simulation")
 
-MAX_STAGNATE = 150
+MAX_STAGNATE = 200
 stagnate_count = 0
 previous_best_fitness = 0
 # +----------------------------------------------+
@@ -288,8 +291,6 @@ for _ in range(MAX_GENERATIONS):
     else:
         stagnate_count = 0
 
-    previous_best_fitness = best_fitness
-
     if stagnate_count >= MAX_STAGNATE:
         # kill off population
         population = []
@@ -297,7 +298,12 @@ for _ in range(MAX_GENERATIONS):
             population.append(spawn_candidate())
         stagnate_count = 0
 
+    previous_best_fitness = best_fitness
+
     print_entire_page()
+
+    if best_fitness == 162:
+        exit(0)
 
     # start by creating offspring
     new_generation = []
