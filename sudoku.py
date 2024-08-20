@@ -75,7 +75,7 @@ def pretty_print(board: list) -> None:
         print("|")
     print(" ------- ------- ------- ")
 
-GIVEN_NUMBERS = 32
+GIVEN_NUMBERS = 17
 SUDOKU = generate_puzzle(GIVEN_NUMBERS)
 
 print(" -------  SUDOKU ------- ")
@@ -164,7 +164,7 @@ print("Testing fitness Done!")
 # exit(0)
 
 print("spawning initial population...")
-POPULATION_SIZE = 1200
+POPULATION_SIZE = 1500
 population = []
 # creating the population
 for _ in range(POPULATION_SIZE):
@@ -239,8 +239,8 @@ def tournament_eliminate() -> None:
 # |                    PART 3                    |
 # +----------------------------------------------+
 MAX_GENERATIONS = 1500
-SURVIVOR_PERCENTAGE = 0.6
-NEWCOMERS_PERCENTAGE = 0.4
+SURVIVOR_PERCENTAGE = 0.65
+NEWCOMERS_PERCENTAGE = 0.35
 
 CROSSOVER_PROBABILITY = 0.8
 MUTATION_PROBABILITY = 0.9
@@ -274,7 +274,7 @@ def print_entire_page() -> None:
 
 print("Starting simulation")
 
-MAX_STAGNATE = 200
+MAX_STAGNATE = 1000
 stagnate_count = 0
 previous_best_fitness = 0
 # +----------------------------------------------+
