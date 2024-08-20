@@ -264,18 +264,16 @@ def print_entire_page():
 
     else:
         print(f"Best Candidate Fitness: {best_fitness}")
-        print(f"Worst Candidates Fitness: {fitness(population[0])}")
+        print(f"Worst Candidates Fitness: {worst_fitness}")
         pretty_print(get_board_from_candidate(population[-1]))
         for _ in range(rem):
             print('')
 
 print("Starting simulation")
-fitness_scores = []
-
 
 MAX_STAGNATE = 150
 stagnate_count = 0
-
+previous_best_fitness = 0
 # +----------------------------------------------+
 # |                    PART 3                    |
 # +----------------------------------------------+
@@ -283,13 +281,14 @@ for _ in range(MAX_GENERATIONS):
     sort_by_fitness()
 
     best_fitness = fitness(population[-1])
-    if len(fitness_scores) > 0:
-        if fitness_scores[-1] >= best_fitness:
-            stagnate_count += 1
-        else:
-            stagnate_count = 0
+    worst_fitness = fitness(population[0])
 
-    fitness_scores.append(best_fitness)
+    if previous_best_fitness >= best_fitness:
+        stagnate_count += 1
+    else:
+        stagnate_count = 0
+
+    previous_best_fitness = best_fitness
 
     if stagnate_count >= MAX_STAGNATE:
         # kill off population
