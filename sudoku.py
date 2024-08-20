@@ -75,7 +75,7 @@ def pretty_print(board: list) -> None:
         print("|")
     print(" ------- ------- ------- ")
 
-GIVEN_NUMBERS = 35
+GIVEN_NUMBERS = 31
 SUDOKU = generate_puzzle(GIVEN_NUMBERS)
 
 print(" -------  SUDOKU ------- ")
@@ -129,7 +129,7 @@ def get_board_from_candidate(candidate: list) -> list:
 print("Testing solution representation...")
 pretty_print(get_board_from_candidate(spawn_candidate()))
 print("Testing solution representation Done!")
-exit(0)
+# exit(0)
 
 def fitness(candidate: list) -> int:
     """
@@ -159,9 +159,9 @@ def fitness(candidate: list) -> int:
     return result
 
 print("Testing fitness function...")
-assert (fitness(TEMPLATE) == 162)
+# assert (fitness(TEMPLATE) == 162)
 print("Testing fitness Done!")
-exit(0)
+# exit(0)
 
 print("spawning initial population...")
 POPULATION_SIZE = 1200
@@ -177,7 +177,7 @@ def sort_by_fitness() -> None:
     """
     population.sort(key=lambda x: fitness(x))
 
-def rank_selection() -> list:
+def rank_select() -> list:
     """
     Selects a candidate from the population with probability weighted by rank
     Assumes populace is sorted by fitness increasing fitness
@@ -246,11 +246,32 @@ CROSSOVER_PROBABILITY = 0.8
 MUTATION_PROBABILITY = 0.9
 N_WAY_MUTATION = 8
 
+def print_entire_page():
+    SCREEN_SIZE = os.get_terminal_size()
+    SCREEN_HEIGHT = 16
+    SCREEN_WIDTH = 25
+    if SCREEN_WIDTH > SCREEN_SIZE.columns or SCREEN_HEIGHT > SCREEN_SIZE.lines:
+        print(f"Terminal (width=${SCREEN_SIZE.columns}, height=${SCREEN_SIZE.lines}) is too small to render animation!")
+        exit(0)
+
+    rem = SCREEN_SIZE.lines - SCREEN_HEIGHT
+    if best_fitness == 2 * 81:
+        print("Solution found!")
+        pretty_print(get_board_from_candidate(population[-1]))
+        for _ in range(rem + 1):
+            print('')
+        exit(0)
+
+    else:
+        print(f"Best Candidate Fitness: {best_fitness}")
+        print(f"Worst Candidates Fitness: {fitness(population[0])}")
+        pretty_print(get_board_from_candidate(population[-1]))
+        for _ in range(rem):
+            print('')
+
 print("Starting simulation")
 fitness_scores = []
-SCREEN_SIZE = os.get_terminal_size()
-SCREEN_HEIGHT = 16
-SCREEN_WIDTH = 25
+
 
 MAX_STAGNATE = 150
 stagnate_count = 0
@@ -277,29 +298,13 @@ for _ in range(MAX_GENERATIONS):
             population.append(spawn_candidate())
         stagnate_count = 0
 
-    if SCREEN_WIDTH > SCREEN_SIZE.columns or SCREEN_HEIGHT > SCREEN_SIZE.lines:
-        print(f"Terminal (width=${SCREEN_SIZE.columns}, height=${SCREEN_SIZE.lines}) is too small to render animation!")
-        exit(0)
-
-    rem = SCREEN_SIZE.lines - SCREEN_HEIGHT
-    if best_fitness == 2 * 81:
-        print("Solution found!")
-        pretty_print(get_board_from_candidate(population[-1]))
-        for _ in range(rem + 1):
-            print('')
-        break
-    else:
-        print(f"Best Candidate Fitness: {best_fitness}")
-        print(f"Worst Candidates Fitness: {fitness(population[0])}")
-        pretty_print(get_board_from_candidate(population[-1]))
-        for _ in range(rem):
-            print('')
+    print_entire_page()
 
     # start by creating offspring
     new_generation = []
     while len(new_generation) < int(POPULATION_SIZE * SURVIVOR_PERCENTAGE) + 1:
-        parent_a = rank_selection()
-        parent_b = rank_selection()
+        parent_a = rank_select()
+        parent_b = rank_select()
 
         if random.random() < CROSSOVER_PROBABILITY:
             child_a, child_b = random_crossover(parent_a, parent_b)
