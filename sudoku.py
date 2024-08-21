@@ -76,7 +76,7 @@ def pretty_print(board: list) -> None:
         print("|")
     print(" ------- ------- ------- ")
 
-GIVEN_NUMBERS = 22
+GIVEN_NUMBERS = 32
 SUDOKU = generate_puzzle(GIVEN_NUMBERS)
 
 print(" -------  SUDOKU ------- ")
@@ -241,9 +241,8 @@ def tournament_eliminate() -> None:
 # +----------------------------------------------+
 MAX_GENERATIONS = 1500
 SURVIVOR_PERCENTAGE = 0.65
+OFFSPRING_PERCENTAGE = 0.65
 NEWCOMERS_PERCENTAGE = 1 - SURVIVOR_PERCENTAGE
-
-CROSSOVER_PROBABILITY = 0.8
 MUTATION_PROBABILITY = 0.9
 N_WAY_MUTATION = 8
 
@@ -312,22 +311,17 @@ for _ in range(MAX_GENERATIONS):
         parent_a = rank_select()
         parent_b = rank_select()
 
-        if random.random() < CROSSOVER_PROBABILITY:
-            child_a, child_b = random_crossover(parent_a, parent_b)
+        child_a, child_b = random_crossover(parent_a, parent_b)
 
-            if random.random() < MUTATION_PROBABILITY:
-                for _ in range(random.randint(1, N_WAY_MUTATION)):
-                    mutate(child_a)
-            if random.random() < MUTATION_PROBABILITY:
-                for _ in range(random.randint(1, N_WAY_MUTATION)):
-                    mutate(child_b)
+        if random.random() < MUTATION_PROBABILITY:
+            for _ in range(random.randint(1, N_WAY_MUTATION)):
+                mutate(child_a)
+        if random.random() < MUTATION_PROBABILITY:
+            for _ in range(random.randint(1, N_WAY_MUTATION)):
+                mutate(child_b)
 
-            new_population.append(child_a)
-            new_population.append(child_b)
-        else:
-            new_population.append(parent_a)
-            new_population.append(parent_b)
-
+        new_population.append(child_a)
+        new_population.append(child_b)
     population.extend(new_population)
 
     # then kill
