@@ -66,29 +66,47 @@ def pretty_print(board: list) -> None:
     Prints sudoku board such that it's human-readable and pretty
     :param board the Sudoku board in normal representation
     """
-    print("Remove Me")
+    for row in range(9):
+        if row % 3 == 0:
+            print(" ------- ------- ------- ")
+        for col in range(9):
+            if col % 3 == 0:
+                print("|", end=" ")
+            print(board[row][col], end=" ")
+        print("|")
+    print(" ------- ------- ------- ")
 
-GIVEN_NUMBERS = 81
+GIVEN_NUMBERS = 32
 SUDOKU = generate_puzzle(GIVEN_NUMBERS)
 
 print(" -------  SUDOKU ------- ")
 pretty_print(SUDOKU)
 print("Part 1 Done!")
-exit(0)
+# exit(0)
 
 # +----------------------------------------------+
 # |                    PART 2                    |
 # +----------------------------------------------+
 
 TEMPLATE = []
-# Create TEMPLATE here
+for row in SUDOKU:
+    missing = []
+    for i in range(1, 10):
+        if i not in row:
+            missing.append(i)
+    TEMPLATE.append(missing)
 
 def spawn_candidate() -> list:
     """
     Creates a new candidate randomly
     :return: A new candidate
     """
-    print("Remove Me")
+    candidate = []
+    for row in TEMPLATE:
+        row_copy = row.copy()
+        random.shuffle(row_copy)
+        candidate.append(row_copy)
+    return candidate
 
 def convert_to_normal(candidate: list) -> list:
     """
@@ -96,12 +114,23 @@ def convert_to_normal(candidate: list) -> list:
     :param candidate: the solution representation to convert
     :return: A new copy of the normal representation
     """
-    print("Remove Me")
+    board = []
+    for i in range(9):
+        l = []
+        idx = 0
+        for x in SUDOKU[i]:
+            if x == 0:
+                l.append(candidate[i][idx])
+                idx += 1
+            else:
+                l.append(x)
+        board.append(l)
+    return board
 
 print("Testing solution representation...")
 pretty_print(convert_to_normal(spawn_candidate()))
 print("Testing solution representation Done!")
-exit(0)
+# exit(0)
 
 def fitness(candidate: list) -> int:
     """
@@ -111,12 +140,29 @@ def fitness(candidate: list) -> int:
     :param candidate: the candidate solution
     :return: The fitness of the candidate, with max of 81 (aka complete solution)
     """
-    print("Remove Me")
+    result = 0
+    board = convert_to_normal(candidate)
+
+    # check columns first
+    for col in range(9):
+        col_list = []
+        for j in range(9):
+            col_list.append(board[j][col])
+        result += len(set(col_list))
+
+    for subgrid_row in range(0, 9, 3):
+        for subgrid_col in range(0, 9, 3):
+            subgrid_list = []
+            for dx in range(3):
+                for dy in range(3):
+                    subgrid_list.append(board[subgrid_row + dx][subgrid_col + dy])
+            result += len(set(subgrid_list))
+    return result
 
 print("Testing fitness function...")
-assert (fitness(TEMPLATE) == 162)
+# assert (fitness(TEMPLATE) == 162)
 print("Testing fitness Done!")
-exit(0)
+# exit(0)
 
 print("spawning initial population...")
 POPULATION_SIZE = 1500
@@ -138,7 +184,15 @@ def rank_select() -> list:
     Assumes populace is sorted by fitness increasing fitness
     :return: the selected candidate
     """
-    print("Remove Me")
+    S = POPULATION_SIZE * (POPULATION_SIZE + 1) // 2
+    n = random.randint(0, S)
+    count = 0
+    idx = 1
+    while count < n:
+        count += idx
+        if count < n:
+            idx += 1
+    return population[idx - 1]
 
 def random_crossover(a: list, b: list) -> list:
     """
@@ -149,7 +203,16 @@ def random_crossover(a: list, b: list) -> list:
     :param b: parent b
     :return: a list containing the two children
     """
-    print("Remove Me")
+    child_a = []
+    child_b = []
+    for i in range(9):
+        if random.random() < 0.5:
+            child_a.append(a[i].copy())
+            child_b.append(b[i].copy())
+        else:
+            child_a.append(b[i].copy())
+            child_b.append(a[i].copy())
+    return [child_a, child_b]
 
 def mutate(candidate: list) -> None:
     """
@@ -157,14 +220,21 @@ def mutate(candidate: list) -> None:
     The candidate is modified directly
     :param candidate: the candidate to mutate
     """
-    print("Remove Me")
+    selected_row = candidate[random.randint(0, 8)]
+    if len(selected_row) == 0:
+        return
+    pos_1 = random.randint(0, len(selected_row) - 1)
+    pos_2 = random.randint(0, len(selected_row) - 1)
+    selected_row[pos_1], selected_row[pos_2] = selected_row[pos_2], selected_row[pos_1]
 
 def tournament_eliminate() -> None:
     """
     Eliminates a candidate by choosing two random candidates from the population
     and killing the weaker one
     """
-    print("Remove Me")
+    candidates = random.sample(range(len(population)), k=2)
+    candidates.sort(key=lambda x: fitness(population[x]))
+    population.pop(candidates[0])
 
 # +----------------------------------------------+
 # |                    PART 3                    |
@@ -204,6 +274,60 @@ def print_entire_page() -> None:
 
 print("Starting simulation")
 
+MAX_STAGNATE = 1000
+stagnate_count = 0
+previous_best_fitness = 0
 # +----------------------------------------------+
 # |                    PART 3                    |
 # +----------------------------------------------+
+for _ in range(MAX_GENERATIONS):
+    sort_by_fitness()
+
+    best_fitness = fitness(population[-1])
+    worst_fitness = fitness(population[0])
+
+    if previous_best_fitness >= best_fitness:
+        stagnate_count += 1
+    else:
+        stagnate_count = 0
+
+    if stagnate_count >= MAX_STAGNATE:
+        # kill off population
+        population = []
+        for _ in range(POPULATION_SIZE):
+            population.append(spawn_candidate())
+        stagnate_count = 0
+
+    previous_best_fitness = best_fitness
+
+    print_entire_page()
+
+    if best_fitness == 162:
+        exit(0)
+
+    # start by creating offspring
+    offsprings = []
+    while len(offsprings) < int(POPULATION_SIZE * OFFSPRING_PERCENTAGE) + 1:
+        parent_a = rank_select()
+        parent_b = rank_select()
+
+        child_a, child_b = random_crossover(parent_a, parent_b)
+
+        if random.random() < MUTATION_PROBABILITY:
+            for _ in range(random.randint(1, N_WAY_MUTATION)):
+                mutate(child_a)
+        if random.random() < MUTATION_PROBABILITY:
+            for _ in range(random.randint(1, N_WAY_MUTATION)):
+                mutate(child_b)
+        offsprings.append(child_a)
+        offsprings.append(child_b)
+
+    population.extend(offsprings)
+
+    # then kill
+    while len(population) > POPULATION_SIZE * SURVIVOR_PERCENTAGE:
+        tournament_eliminate()
+
+    # add in new spawns
+    while len(population) < POPULATION_SIZE:
+        population.append(spawn_candidate())
