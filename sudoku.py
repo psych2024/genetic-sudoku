@@ -174,7 +174,6 @@ SURVIVOR_PERCENTAGE = 0.65
 OFFSPRING_PERCENTAGE = 0.65
 NEWCOMERS_PERCENTAGE = 1 - SURVIVOR_PERCENTAGE
 MUTATION_PROBABILITY = 0.9
-N_WAY_MUTATION = 8
 
 def print_entire_page() -> None:
     """
@@ -207,3 +206,5 @@ print("Starting simulation")
 # +----------------------------------------------+
 # |                    PART 3                    |
 # +----------------------------------------------+
+
+N_WAY_MUTATION = 8
