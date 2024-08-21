@@ -45,7 +45,7 @@ def generate_puzzle(given: int) -> list:
     """
     Generates a Sudoku puzzle randomly
     :param given: number of cells which should be filled initially
-    :return: the Sudoku puzzle as a list
+    :return: the Sudoku puzzle in normal representation
     """
     board = [[0 for _ in range(9)] for _ in range(9)]
     # generate board
@@ -64,6 +64,7 @@ def generate_puzzle(given: int) -> list:
 def pretty_print(board: list) -> None:
     """
     Prints sudoku board such that it's human-readable and pretty
+    :param board the Sudoku board in normal representation
     """
     for row in range(9):
         if row % 3 == 0:
@@ -75,7 +76,7 @@ def pretty_print(board: list) -> None:
         print("|")
     print(" ------- ------- ------- ")
 
-GIVEN_NUMBERS = 17
+GIVEN_NUMBERS = 22
 SUDOKU = generate_puzzle(GIVEN_NUMBERS)
 
 print(" -------  SUDOKU ------- ")
@@ -107,10 +108,10 @@ def spawn_candidate() -> list:
         candidate.append(row_copy)
     return candidate
 
-def get_board_from_candidate(candidate: list) -> list:
+def convert_to_normal(candidate: list) -> list:
     """
     Converts solution representation to normal representation
-    :param candidate: the solution to convert
+    :param candidate: the solution representation to convert
     :return: A new copy of the normal representation
     """
     board = []
@@ -127,7 +128,7 @@ def get_board_from_candidate(candidate: list) -> list:
     return board
 
 print("Testing solution representation...")
-pretty_print(get_board_from_candidate(spawn_candidate()))
+pretty_print(convert_to_normal(spawn_candidate()))
 print("Testing solution representation Done!")
 # exit(0)
 
@@ -140,7 +141,7 @@ def fitness(candidate: list) -> int:
     :return: The fitness of the candidate, with max of 81 (aka complete solution)
     """
     result = 0
-    board = get_board_from_candidate(candidate)
+    board = convert_to_normal(candidate)
 
     # check columns first
     for col in range(9):
@@ -240,7 +241,7 @@ def tournament_eliminate() -> None:
 # +----------------------------------------------+
 MAX_GENERATIONS = 1500
 SURVIVOR_PERCENTAGE = 0.65
-NEWCOMERS_PERCENTAGE = 0.35
+NEWCOMERS_PERCENTAGE = 1 - SURVIVOR_PERCENTAGE
 
 CROSSOVER_PROBABILITY = 0.8
 MUTATION_PROBABILITY = 0.9
@@ -261,14 +262,14 @@ def print_entire_page() -> None:
     rem = SCREEN_SIZE.lines - SCREEN_HEIGHT
     if best_fitness == 2 * 81:
         print("Solution found!")
-        pretty_print(get_board_from_candidate(population[-1]))
+        pretty_print(convert_to_normal(population[-1]))
         for _ in range(rem + 1):
             print('')
 
     else:
         print(f"Best Candidate Fitness: {best_fitness}")
         print(f"Worst Candidates Fitness: {worst_fitness}")
-        pretty_print(get_board_from_candidate(population[-1]))
+        pretty_print(convert_to_normal(population[-1]))
         for _ in range(rem):
             print('')
 
@@ -306,8 +307,8 @@ for _ in range(MAX_GENERATIONS):
         exit(0)
 
     # start by creating offspring
-    new_generation = []
-    while len(new_generation) < int(POPULATION_SIZE * SURVIVOR_PERCENTAGE) + 1:
+    new_population = []
+    while len(new_population) < int(POPULATION_SIZE * SURVIVOR_PERCENTAGE) + 1:
         parent_a = rank_select()
         parent_b = rank_select()
 
@@ -321,24 +322,18 @@ for _ in range(MAX_GENERATIONS):
                 for _ in range(random.randint(1, N_WAY_MUTATION)):
                     mutate(child_b)
 
-            new_generation.append(child_a)
-            new_generation.append(child_b)
+            new_population.append(child_a)
+            new_population.append(child_b)
         else:
-            new_generation.append(parent_a)
-            new_generation.append(parent_b)
+            new_population.append(parent_a)
+            new_population.append(parent_b)
 
-    population.extend(new_generation)
+    population.extend(new_population)
 
     # then kill
-    while len(population) > POPULATION_SIZE * (1 - NEWCOMERS_PERCENTAGE):
+    while len(population) > POPULATION_SIZE * SURVIVOR_PERCENTAGE:
         tournament_eliminate()
 
     # add in new spawns
     while len(population) < POPULATION_SIZE:
         population.append(spawn_candidate())
-
-# def display_results():
-#     plt.plot(list(range(1, len(fitness_scores) + 1)), fitness_scores)
-#     plt.show()
-#
-# display_results()
